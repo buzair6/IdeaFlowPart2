@@ -1,6 +1,13 @@
-node_modules
-dist
-.DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+/node_modules
+/package-lock.json
+
+# Environment Variables
+# Ignore all local environment files
+.env
+.env.local
+.env.*.local
+
+# Vite
+# Ignore Vite's cache and build output directories
+.vite/
+/dist/
