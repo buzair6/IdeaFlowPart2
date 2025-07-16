@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
 if (!process.env.NEON_DATABASE_URL) {
