@@ -28,7 +28,7 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
-- **Database**: PostgreSQL with Neon serverless
+- **Database**: Neon serverless PostgreSQL (direct connection)
 - **ORM**: Drizzle ORM for type-safe database operations
 - **Authentication**: JWT tokens with bcrypt for password hashing
 - **AI Integration**: Google Gemini AI for idea evaluation
@@ -142,7 +142,7 @@ Preferred communication style: Simple, everyday language.
 - Database schema deployed via migration system
 
 ### Environment Configuration
-- `DATABASE_URL`: PostgreSQL connection string
+- `NEON_DATABASE_URL`: Neon PostgreSQL connection string
 - `JWT_SECRET`: Token signing secret
 - `GEMINI_API_KEY`: Google AI API access
 - `NODE_ENV`: Environment mode (development/production)
