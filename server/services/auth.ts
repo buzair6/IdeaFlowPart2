@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { type User } from "@shared/schema";
 
@@ -25,7 +25,7 @@ export function generateToken(user: User): string {
     email: user.email,
     role: user.role,
   };
-  
+
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
 
@@ -37,6 +37,6 @@ export function extractTokenFromHeader(authHeader: string | undefined): string |
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
   }
-  
+
   return authHeader.substring(7);
 }
