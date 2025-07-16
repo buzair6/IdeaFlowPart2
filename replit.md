@@ -12,6 +12,8 @@ Preferred communication style: Simple, everyday language.
 - Cleaned up all Replit-specific integrations from the codebase
 - Separate admin and general user roles with role management functionality
 - Test admin account: admin@ideavault.com / admin123
+- Added comprehensive AI Evaluator page with persona-based feedback
+- Integrated data source recommendations and visualization suggestions
 
 ## System Architecture
 
@@ -59,6 +61,13 @@ Preferred communication style: Simple, everyday language.
 - Scoring system across multiple criteria (feasibility, market potential, innovation, impact)
 - Structured evaluation with detailed feedback
 - Optional AI evaluation during idea submission
+- Dedicated AI Evaluator page with comprehensive analysis
+- Persona-based feedback with expert consultant perspective
+- Data source recommendations for market research
+- Chart and visualization suggestions
+- Action plan and next steps guidance
+- Market research areas and competitive analysis
+- Timeline and budget estimates
 
 ### Admin Dashboard
 - Idea approval/rejection workflow

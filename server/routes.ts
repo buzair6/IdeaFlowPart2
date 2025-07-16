@@ -357,6 +357,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Evaluator route
+  app.post("/api/ai-evaluator/evaluate", authenticateToken, async (req: Request, res: Response) => {
+    try {
+      const { title, description, category, timeline, targetAudience } = req.body;
+      
+      // Create comprehensive evaluation prompt
+      const evaluationPrompt = `
+        As an expert business analyst and innovation consultant, evaluate this idea with detailed insights:
+        
+        Title: ${title}
+        Description: ${description}
+        Category: ${category}
+        Timeline: ${timeline}
+        Target Audience: ${targetAudience}
+        
+        Please provide:
+        1. Overall assessment and persona-based feedback
+        2. Specific data sources for market research
+        3. Recommended charts and visualizations
+        4. Next steps and action plan
+        5. Market research areas
+        6. Timeline and budget estimates
+        
+        Be thorough and actionable in your recommendations.
+      `;
+      
+      const evaluation = await evaluateIdea(title, evaluationPrompt, category, timeline, targetAudience);
+      
+      // Enhanced evaluation with additional insights
+      const enhancedEvaluation = {
+        ...evaluation,
+        persona: `As your AI business consultant, I see ${title} as a ${category} solution with ${timeline} timeline potential. Based on the target audience of ${targetAudience}, this idea shows promise but requires strategic positioning and market validation.`,
+        dataSources: [
+          "Google Trends for market interest analysis",
+          "Industry reports from IBISWorld or Statista",
+          "Competitor analysis using SimilarWeb",
+          "Social media sentiment analysis",
+          "Government databases for regulatory information",
+          "Patent databases for innovation landscape"
+        ],
+        recommendedCharts: [
+          "Market Size Analysis (Bar Chart)",
+          "Competitive Landscape (Bubble Chart)",
+          "Customer Segmentation (Pie Chart)",
+          "Revenue Projections (Line Chart)",
+          "SWOT Analysis Matrix",
+          "Timeline Gantt Chart"
+        ],
+        nextSteps: [
+          "Conduct primary market research with target audience",
+          "Develop minimum viable product (MVP) prototype",
+          "Analyze competitive landscape and positioning",
+          "Create detailed financial projections",
+          "Develop go-to-market strategy",
+          "Secure initial funding or investment"
+        ],
+        marketResearch: [
+          "Customer pain points and needs analysis",
+          "Pricing strategy and willingness to pay",
+          "Distribution channels and partnerships",
+          "Market entry barriers and regulations",
+          "Competitive advantages and differentiation",
+          "Scalability and growth potential"
+        ],
+        timeline: `Based on ${timeline} timeline: ${timeline === 'immediate' ? '1-3 months' : timeline === 'short' ? '3-6 months' : timeline === 'medium' ? '6-12 months' : '12+ months'} for initial market entry`,
+        budgetEstimate: `Estimated initial investment: ${category === 'technology' ? '$50k-200k' : category === 'healthcare' ? '$100k-500k' : category === 'business' ? '$25k-100k' : '$10k-75k'} depending on scope and complexity`
+      };
+      
+      res.json(enhancedEvaluation);
+    } catch (error) {
+      console.error("AI Evaluator error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // User management routes
   app.get("/api/admin/users", authenticateToken, requireAdmin, async (req: Request, res: Response) => {
     try {

@@ -15,6 +15,7 @@ import SubmitIdea from "@/pages/submit-idea";
 import MyIdeas from "@/pages/my-ideas";
 import Admin from "@/pages/admin";
 import UserManagement from "@/pages/user-management";
+import AIEvaluator from "@/pages/ai-evaluator";
 import NotFound from "@/pages/not-found";
 
 // Add authorization header to all requests
@@ -117,6 +118,12 @@ function Router() {
         <AdminRoute>
           <UserManagement />
         </AdminRoute>
+      </Route>
+      
+      <Route path="/ai-evaluator">
+        <ProtectedRoute>
+          <AIEvaluator />
+        </ProtectedRoute>
       </Route>
       
       <Route path="/">
