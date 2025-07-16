@@ -73,7 +73,7 @@ export class DatabaseStorage implements IStorage {
     if (authorId) conditions.push(eq(ideas.authorId, authorId));
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
     
     return await query.orderBy(desc(ideas.createdAt));

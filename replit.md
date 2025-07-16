@@ -7,6 +7,9 @@ IdeaVault is a full-stack web application that allows users to submit, evaluate,
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+- Removed all Replit authentication dependencies and session-based auth
+- Uses pure JWT-based authentication system
+- Cleaned up all Replit-specific integrations from the codebase
 
 ## System Architecture
 
@@ -37,10 +40,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication System
 - JWT-based authentication with 7-day token expiration
-- Role-based access control (user/admin roles)
+- Role-based access control (user/admin roles)  
 - Password hashing using bcrypt
 - Token stored in localStorage with automatic header injection
 - Protected routes with authentication middleware
+- Completely independent authentication system (no Replit dependencies)
 
 ### Database Schema
 - **Users**: Authentication, profile, and role management
