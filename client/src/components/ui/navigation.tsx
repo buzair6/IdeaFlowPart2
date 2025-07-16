@@ -11,7 +11,10 @@ export function Navigation() {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/submit", label: "Submit Idea" },
     { href: "/my-ideas", label: "My Ideas" },
-    ...(user?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
+    ...(user?.role === "admin" ? [
+      { href: "/admin", label: "Admin" },
+      { href: "/admin/users", label: "User Management" }
+    ] : []),
   ];
 
   return (

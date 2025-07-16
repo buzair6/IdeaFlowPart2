@@ -14,6 +14,7 @@ import Dashboard from "@/pages/dashboard";
 import SubmitIdea from "@/pages/submit-idea";
 import MyIdeas from "@/pages/my-ideas";
 import Admin from "@/pages/admin";
+import UserManagement from "@/pages/user-management";
 import NotFound from "@/pages/not-found";
 
 // Add authorization header to all requests
@@ -109,6 +110,12 @@ function Router() {
       <Route path="/admin">
         <AdminRoute>
           <Admin />
+        </AdminRoute>
+      </Route>
+      
+      <Route path="/admin/users">
+        <AdminRoute>
+          <UserManagement />
         </AdminRoute>
       </Route>
       

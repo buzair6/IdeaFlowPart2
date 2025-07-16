@@ -10,6 +10,8 @@ Preferred communication style: Simple, everyday language.
 - Removed all Replit authentication dependencies and session-based auth
 - Uses pure JWT-based authentication system
 - Cleaned up all Replit-specific integrations from the codebase
+- Separate admin and general user roles with role management functionality
+- Test admin account: admin@ideavault.com / admin123
 
 ## System Architecture
 
@@ -63,6 +65,8 @@ Preferred communication style: Simple, everyday language.
 - Statistics and analytics
 - User management capabilities
 - Bulk operations for content moderation
+- Role-based user management with upgrade/downgrade functionality
+- Dedicated admin user: admin@ideavault.com (password: admin123)
 
 ### Voting System
 - Upvote/downvote functionality for approved ideas

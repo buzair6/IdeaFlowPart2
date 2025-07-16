@@ -8,6 +8,8 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  updateUserRole(userId: number, role: string): Promise<User>;
   
   // Idea operations
   getIdea(id: number): Promise<Idea | undefined>;
@@ -55,6 +57,19 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .insert(users)
       .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(users.createdAt);
+  }
+
+  async updateUserRole(userId: number, role: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ role: role as any })
+      .where(eq(users.id, userId))
       .returning();
     return user;
   }

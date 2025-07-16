@@ -357,6 +357,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User management routes
+  app.get("/api/admin/users", authenticateToken, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const users = await storage.getAllUsers();
+      // Remove password from response
+      const safeUsers = users.map(({ password, ...user }) => user);
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Get users error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/admin/users/:id/role", authenticateToken, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { role } = req.body;
+      
+      // Validate role
+      if (!["user", "admin"].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      
+      // Prevent admin from changing their own role
+      if (userId === req.user!.id) {
+        return res.status(400).json({ message: "Cannot change your own role" });
+      }
+      
+      const user = await storage.updateUserRole(userId, role);
+      const { password, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Update user role error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
