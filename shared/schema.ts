@@ -63,6 +63,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
   fullName: true,
+  role: true,
 });
 
 export const insertIdeaSchema = createInsertSchema(ideas).pick({

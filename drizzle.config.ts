@@ -1,8 +1,9 @@
-import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
 if (!process.env.NEON_DATABASE_URL) {
-  throw new Error("NEON_DATABASE_URL is not set in your environment variables");
+  throw new Error(
+    "NEON_DATABASE_URL must be set. Did you forget to add it to your secrets?",
+  );
 }
 
 export default defineConfig({

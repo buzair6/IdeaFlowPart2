@@ -56,7 +56,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
-      });
+        role: 'admin',
+      } as any);
       
       // Generate token
       const token = generateToken(user);
