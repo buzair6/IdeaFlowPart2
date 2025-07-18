@@ -56,7 +56,7 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values({ ...insertUser, role: 'admin' })
+      .values(insertUser)
       .returning();
     return user;
   }
@@ -200,13 +200,11 @@ export class DatabaseStorage implements IStorage {
         category: ideas.category,
         aiScore: ideas.aiScore,
         createdAt: ideas.createdAt,
-        author: {
-          id: users.id,
-          username: users.username,
-          fullName: users.fullName,
-        },
-        upvotes: sql<number>`count(case when ${votes.voteType} = 'upvote' then 1 end)`,
-        downvotes: sql<number>`count(case when ${votes.voteType} = 'downvote' then 1 end)`,
+        authorId: users.id,
+        authorUsername: users.username,
+        authorFullName: users.fullName,
+        upvotes: sql<number>`COALESCE(SUM(CASE WHEN ${votes.voteType} = 'upvote' THEN 1 ELSE 0 END), 0)`,
+        downvotes: sql<number>`COALESCE(SUM(CASE WHEN ${votes.voteType} = 'downvote' THEN 1 ELSE 0 END), 0)`,
       })
       .from(ideas)
       .leftJoin(users, eq(ideas.authorId, users.id))
@@ -214,8 +212,22 @@ export class DatabaseStorage implements IStorage {
       .where(eq(ideas.status, 'approved'))
       .groupBy(ideas.id, users.id)
       .orderBy(desc(ideas.createdAt));
-    
-    return result;
+
+    return result.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      category: row.category,
+      aiScore: row.aiScore,
+      createdAt: row.createdAt,
+      author: {
+        id: row.authorId,
+        username: row.authorUsername,
+        fullName: row.authorFullName,
+      },
+      upvotes: Number(row.upvotes),
+      downvotes: Number(row.downvotes),
+    }));
   }
 
   async getIdeasForAdmin(): Promise<any[]> {
@@ -267,10 +279,10 @@ export class DatabaseStorage implements IStorage {
       .from(users);
     
     return {
-      pendingIdeas: pendingIdeas.count || 0,
-      approvedIdeas: approvedIdeas.count || 0,
-      totalVotes: totalVotes.count || 0,
-      activeUsers: activeUsers.count || 0,
+      pendingIdeas: Number(pendingIdeas.count) || 0,
+      approvedIdeas: Number(approvedIdeas.count) || 0,
+      totalVotes: Number(totalVotes.count) || 0,
+      activeUsers: Number(activeUsers.count) || 0,
     };
   }
 }

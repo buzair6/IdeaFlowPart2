@@ -43,23 +43,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = insertUserSchema.parse(req.body);
       
-      // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
         return res.status(400).json({ message: "User already exists" });
       }
       
-      // Hash password
       const hashedPassword = await hashPassword(userData.password);
       
-      // Create user
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
-        role: 'admin',
-      } as any);
+      });
       
-      // Generate token
       const token = generateToken(user);
       
       res.json({
@@ -82,19 +77,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = loginSchema.parse(req.body);
       
-      // Find user
       const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      // Verify password
       const isValid = await verifyPassword(password, user.password);
       if (!isValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      // Generate token
       const token = generateToken(user);
       
       res.json({
@@ -128,7 +120,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ideas routes
   app.get("/api/ideas", async (req: Request, res: Response) => {
     try {
-      const { status, category } = req.query;
       const ideas = await storage.getApprovedIdeasWithVotes();
       res.json(ideas);
     } catch (error) {
@@ -162,31 +153,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ideas", authenticateToken, async (req: Request, res: Response) => {
     try {
       const ideaData = insertIdeaSchema.parse(req.body);
-      const { requestAiEvaluation } = req.body;
       
-      let aiScore = null;
-      let aiEvaluation = null;
-      
-      // Perform AI evaluation if requested
-      if (requestAiEvaluation) {
-        const evaluation = await evaluateIdea(
-          ideaData.title,
-          ideaData.description,
-          ideaData.category,
-          ideaData.targetAudience || undefined,
-          ideaData.timeline || undefined
-        );
-        
-        aiScore = evaluation.score;
-        aiEvaluation = evaluation.feedback;
-      }
-      
-      // Create idea
       const idea = await storage.createIdea({
         ...ideaData,
         authorId: req.user!.id,
-        ...(aiScore && { aiScore }),
-        ...(aiEvaluation && { aiEvaluation }),
       });
       
       res.json(idea);
@@ -205,7 +175,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Idea not found" });
       }
       
-      // Check if user owns the idea or is admin
       if (idea.authorId !== req.user!.id && req.user!.role !== "admin") {
         return res.status(403).json({ message: "Not authorized to edit this idea" });
       }
@@ -229,7 +198,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Idea not found" });
       }
       
-      // Check if user owns the idea or is admin
       if (idea.authorId !== req.user!.id && req.user!.role !== "admin") {
         return res.status(403).json({ message: "Not authorized to delete this idea" });
       }
@@ -258,9 +226,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ideas/:id/vote", authenticateToken, async (req: Request, res: Response) => {
     try {
       const ideaId = parseInt(req.params.id);
-      const { voteType } = insertVoteSchema.parse(req.body);
+      const { voteType } = req.body;
       
-      // Check if idea exists and is approved
+      insertVoteSchema.parse({ ideaId, voteType });
+
       const idea = await storage.getIdea(ideaId);
       if (!idea) {
         return res.status(404).json({ message: "Idea not found" });
@@ -270,21 +239,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Can only vote on approved ideas" });
       }
       
-      // Check if user already voted
       const existingVote = await storage.getVote(ideaId, req.user!.id);
       
       if (existingVote) {
         if (existingVote.voteType === voteType) {
-          // Same vote type - remove vote
           await storage.deleteVote(ideaId, req.user!.id);
           res.json({ message: "Vote removed" });
         } else {
-          // Different vote type - update vote
           await storage.updateVote(ideaId, req.user!.id, voteType);
           res.json({ message: "Vote updated" });
         }
       } else {
-        // Create new vote
         await storage.createVote({
           ideaId,
           userId: req.user!.id,
@@ -363,30 +328,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { title, description, category, timeline, targetAudience } = req.body;
       
-      // Create comprehensive evaluation prompt
-      const evaluationPrompt = `
-        As an expert business analyst and innovation consultant, evaluate this idea with detailed insights:
-        
-        Title: ${title}
-        Description: ${description}
-        Category: ${category}
-        Timeline: ${timeline}
-        Target Audience: ${targetAudience}
-        
-        Please provide:
-        1. Overall assessment and persona-based feedback
-        2. Specific data sources for market research
-        3. Recommended charts and visualizations
-        4. Next steps and action plan
-        5. Market research areas
-        6. Timeline and budget estimates
-        
-        Be thorough and actionable in your recommendations.
-      `;
+      const evaluation = await evaluateIdea(title, description, category, timeline, targetAudience);
       
-      const evaluation = await evaluateIdea(title, evaluationPrompt, category, timeline, targetAudience);
-      
-      // Enhanced evaluation with additional insights
       const enhancedEvaluation = {
         ...evaluation,
         persona: `As your AI business consultant, I see ${title} as a ${category} solution with ${timeline} timeline potential. Based on the target audience of ${targetAudience}, this idea shows promise but requires strategic positioning and market validation.`,
@@ -437,7 +380,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users", authenticateToken, requireAdmin, async (req: Request, res: Response) => {
     try {
       const users = await storage.getAllUsers();
-      // Remove password from response
       const safeUsers = users.map(({ password, ...user }) => user);
       res.json(safeUsers);
     } catch (error) {
@@ -451,12 +393,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.id);
       const { role } = req.body;
       
-      // Validate role
       if (!["user", "admin"].includes(role)) {
         return res.status(400).json({ message: "Invalid role" });
       }
       
-      // Prevent admin from changing their own role
       if (userId === req.user!.id) {
         return res.status(400).json({ message: "Cannot change your own role" });
       }

@@ -29,11 +29,11 @@ Target Audience: ${targetAudience || 'Not specified'}
 Timeline: ${timeline || 'Not specified'}
 
 Please analyze this idea based on the following criteria:
-1. Technical/Business Feasibility (0-100)
-2. Market Potential (0-100)
-3. Innovation Level (0-100)
-4. Potential Impact (0-100)
-5. Overall Score (0-100)
+1. Technical/Business Feasibility (0-10)
+2. Market Potential (0-10)
+3. Innovation Level (0-10)
+4. Potential Impact (0-10)
+5. Overall Score (0-10)
 
 Provide constructive feedback including strengths, weaknesses, and suggestions for improvement.
 
@@ -74,11 +74,11 @@ Respond with JSON in this exact format:
       const evaluation: IdeaEvaluation = JSON.parse(rawJson);
       
       // Ensure scores are within valid range
-      evaluation.score = Math.max(0, Math.min(100, evaluation.score));
-      evaluation.feasibility = Math.max(0, Math.min(100, evaluation.feasibility));
-      evaluation.marketPotential = Math.max(0, Math.min(100, evaluation.marketPotential));
-      evaluation.innovation = Math.max(0, Math.min(100, evaluation.innovation));
-      evaluation.impact = Math.max(0, Math.min(100, evaluation.impact));
+      evaluation.score = Math.max(0, Math.min(10, evaluation.score));
+      evaluation.feasibility = Math.max(0, Math.min(10, evaluation.feasibility));
+      evaluation.marketPotential = Math.max(0, Math.min(10, evaluation.marketPotential));
+      evaluation.innovation = Math.max(0, Math.min(10, evaluation.innovation));
+      evaluation.impact = Math.max(0, Math.min(10, evaluation.impact));
       
       return evaluation;
     } else {
@@ -89,12 +89,12 @@ Respond with JSON in this exact format:
     
     // Return fallback evaluation
     return {
-      score: 50,
+      score: 5,
       feedback: "AI evaluation temporarily unavailable. Please try again later.",
-      feasibility: 50,
-      marketPotential: 50,
-      innovation: 50,
-      impact: 50,
+      feasibility: 5,
+      marketPotential: 5,
+      innovation: 5,
+      impact: 5,
     };
   }
 }

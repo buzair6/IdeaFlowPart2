@@ -4,11 +4,10 @@ import { Navigation } from "@/components/ui/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AiScoreRing } from "@/components/ui/ai-score-ring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { Edit, Trash2, Eye, RotateCcw, ArrowUp } from "lucide-react";
+import { Edit, Trash2, Eye, RotateCcw, AlertCircle } from "lucide-react";
 
 export default function MyIdeas() {
   const [activeTab, setActiveTab] = useState("all");
@@ -42,24 +41,24 @@ export default function MyIdeas() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "approved":
-        return "bg-secondary/10 text-secondary";
+        return "bg-green-100 text-green-800 border-green-200";
       case "rejected":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      technology: "bg-primary/10 text-primary",
-      business: "bg-secondary/10 text-secondary",
-      healthcare: "bg-accent/10 text-accent",
-      education: "bg-orange-100 text-orange-800",
-      environment: "bg-green-100 text-green-800",
-      other: "bg-gray-100 text-gray-800",
+      technology: "bg-blue-100 text-blue-800 border-blue-200",
+      business: "bg-indigo-100 text-indigo-800 border-indigo-200",
+      healthcare: "bg-purple-100 text-purple-800 border-purple-200",
+      education: "bg-orange-100 text-orange-800 border-orange-200",
+      environment: "bg-green-100 text-green-800 border-green-200",
+      other: "bg-gray-100 text-gray-800 border-gray-200",
     };
     return colors[category as keyof typeof colors] || colors.other;
   };
@@ -83,20 +82,39 @@ export default function MyIdeas() {
     if (activeTab === "all") return true;
     return idea.status === activeTab;
   }) || [];
+  
+  const DescriptionDisplay = ({ description }: { description: string }) => {
+    const parts = description.split('\n\n---\n\n').map(part => {
+      const lines = part.split('\n\n');
+      const question = lines[0].replace(/###\s\d\.\s/g, '').trim();
+      const answer = lines.slice(1).join('\n\n');
+      return { question, answer };
+    });
+  
+    return (
+      <div className="prose prose-sm max-w-none text-neutral-600 prose-headings:font-semibold prose-headings:text-neutral-800 prose-p:my-1">
+        {parts.map((part, index) => (
+          <div key={index} className="not-first:mt-4">
+            <h4>{part.question}</h4>
+            <p>{part.answer}</p>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-neutral-50">
         <Navigation />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-neutral-900">My Ideas</h1>
             <p className="text-neutral-600">Track and manage your submitted ideas</p>
           </div>
-          
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-xl" />
+              <Skeleton key={i} className="h-48 rounded-xl" />
             ))}
           </div>
         </div>
@@ -107,13 +125,12 @@ export default function MyIdeas() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navigation />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-neutral-900">My Ideas</h1>
           <p className="text-neutral-600">Track and manage your submitted ideas</p>
         </div>
 
-        {/* Status Tabs */}
         <div className="mb-6 border-b border-neutral-200">
           <nav className="flex space-x-8">
             {[
@@ -137,108 +154,56 @@ export default function MyIdeas() {
           </nav>
         </div>
 
-        {/* Ideas List */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {filteredIdeas.map((idea: any) => (
-            <Card key={idea.id}>
+            <Card key={idea.id} className="overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-neutral-900">{idea.title}</h3>
-                      <Badge className={`text-xs ${getStatusColor(idea.status)}`}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-xl font-bold text-neutral-900">{idea.title}</h3>
+                      <Badge className={getStatusColor(idea.status)}>
                         {idea.status.charAt(0).toUpperCase() + idea.status.slice(1)}
                       </Badge>
                     </div>
-                    
-                    <p className="text-neutral-600 text-sm mb-3">{idea.description}</p>
-                    
-                    {/* AI Evaluation */}
-                    {idea.aiEvaluation && (
-                      <div className="mb-3 p-3 bg-primary/5 rounded-lg">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                            <span className="text-xs text-white">AI</span>
-                          </div>
-                          <span className="text-sm font-medium text-primary">AI Evaluation</span>
-                          <AiScoreRing score={idea.aiScore} size="sm" />
-                        </div>
-                        <p className="text-sm text-neutral-700">{idea.aiEvaluation}</p>
-                      </div>
-                    )}
-
-                    {/* Rejection Reason */}
-                    {idea.status === "rejected" && idea.rejectionReason && (
-                      <div className="mb-3 p-3 bg-red-50 rounded-lg">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                            <span className="text-xs text-white">!</span>
-                          </div>
-                          <span className="text-sm font-medium text-red-800">Rejection Reason</span>
-                        </div>
-                        <p className="text-sm text-red-700">{idea.rejectionReason}</p>
-                      </div>
-                    )}
-
-                    <div className="flex items-center space-x-4 text-xs text-neutral-500">
-                      <span>Submitted {formatTimeAgo(idea.createdAt)}</span>
-                      <Badge className={`text-xs ${getCategoryColor(idea.category)}`}>
-                        {idea.category.charAt(0).toUpperCase() + idea.category.slice(1)}
-                      </Badge>
-                    </div>
+                     <DescriptionDisplay description={idea.description} />
                   </div>
-                  
-                  <div className="flex items-center space-x-2 ml-4">
-                    {idea.status === "pending" && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-neutral-500 hover:text-primary"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteMutation.mutate(idea.id)}
-                          disabled={deleteMutation.isPending}
-                          className="text-neutral-500 hover:text-red-500"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </>
+                  <div className="flex items-center space-x-2">
+                    {idea.status === 'pending' && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500 hover:text-red-500" onClick={() => deleteMutation.mutate(idea.id)} disabled={deleteMutation.isPending}><Trash2 className="h-4 w-4" /></Button>
                     )}
-                    
-                    {idea.status === "approved" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-neutral-500 hover:text-primary"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                    {idea.status === 'approved' && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500 hover:text-primary"><Eye className="h-4 w-4" /></Button>
                     )}
-                    
-                    {idea.status === "rejected" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-neutral-500 hover:text-primary"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                      </Button>
+                    {idea.status === 'rejected' && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500 hover:text-primary"><RotateCcw className="h-4 w-4" /></Button>
                     )}
                   </div>
                 </div>
+
+                {idea.status === "rejected" && idea.rejectionReason && (
+                  <div className="mt-4 p-3 bg-red-50 text-red-900 rounded-lg flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 mt-0.5 text-red-500 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-sm">Rejection Reason</h4>
+                      <p className="text-sm text-red-800">{idea.rejectionReason}</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
+              <div className="bg-neutral-50 px-6 py-3 border-t border-neutral-200 flex items-center justify-between">
+                 <span className="text-xs text-neutral-500">Submitted {formatTimeAgo(idea.createdAt)}</span>
+                 <Badge variant="outline" className={getCategoryColor(idea.category)}>
+                   {idea.category.charAt(0).toUpperCase() + idea.category.slice(1)}
+                 </Badge>
+              </div>
             </Card>
           ))}
         </div>
 
         {filteredIdeas.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-neutral-500">No ideas found.</p>
+          <div className="text-center py-16">
+            <p className="text-neutral-500">No ideas found in this category.</p>
           </div>
         )}
       </div>

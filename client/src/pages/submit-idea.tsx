@@ -7,23 +7,50 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Send } from "lucide-react";
 
+const questions = [
+  {
+    id: "idea_summary",
+    label: "1. What is your idea?",
+    placeholder: "Describe your business idea in one simple sentence.",
+  },
+  {
+    id: "idea_importance",
+    label: "2. Why is this idea important now, and how will it work?",
+    placeholder: "What problem are you addressing? What's the basic plan? What makes this the right time?",
+  },
+  {
+    id: "idea_strengths",
+    label: "3. Which strengths and capabilities make your team best-placed to execute this idea?",
+    placeholder: "Why is your team best placed to take this forward? Do you have the right skills, knowledge, or relationships?",
+  },
+  {
+    id: "idea_impact",
+    label: "4. What will the impact be?",
+    placeholder: "What are the potential financial and non-financial benefits? How much investment (CAPEX) will this require?",
+  },
+  {
+    id: "idea_practicality",
+    label: "5. Is the idea practical and ready to move forward?",
+    placeholder: "Is this realistic with current resources? What feasibility work have you done? If tried before, what did you learn?",
+  },
+];
+
 export default function SubmitIdea() {
   const [, setLocation] = useLocation();
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "",
-    description: "",
-    targetAudience: "",
-    timeline: "",
-    additionalResources: "",
-    requestAiEvaluation: false,
-  });
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [answers, setAnswers] = useState(Array(5).fill(""));
+
+  const handleAnswerChange = (index: number, value: string) => {
+    const newAnswers = [...answers];
+    newAnswers[index] = value;
+    setAnswers(newAnswers);
+  };
 
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -33,14 +60,14 @@ export default function SubmitIdea() {
     onSuccess: () => {
       toast({
         title: "Idea submitted!",
-        description: "Your idea has been submitted for review.",
+        description: "Your idea has been sent for admin approval.",
       });
       setLocation("/my-ideas");
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to submit idea",
+        description: error.message || "Failed to submit idea. Please check your input and try again.",
         variant: "destructive",
       });
     },
@@ -48,11 +75,27 @@ export default function SubmitIdea() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submitMutation.mutate(formData);
-  };
 
-  const handleChange = (field: string, value: string | boolean) => {
-    setFormData({ ...formData, [field]: value });
+    if (!category) {
+      toast({
+        title: "Category is required",
+        description: "Please select a category for your idea.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const description = questions
+      .map((q, index) => `### ${q.label}\n\n${answers[index]}`)
+      .join('\n\n---\n\n');
+
+    const submissionData = {
+      title,
+      category,
+      description,
+    };
+    
+    submitMutation.mutate(submissionData);
   };
 
   return (
@@ -74,8 +117,8 @@ export default function SubmitIdea() {
                 <Label htmlFor="title">Idea Title</Label>
                 <Input
                   id="title"
-                  value={formData.title}
-                  onChange={(e) => handleChange("title", e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter a catchy title for your idea"
                   required
                 />
@@ -83,7 +126,7 @@ export default function SubmitIdea() {
 
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => handleChange("category", value)}>
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
@@ -98,66 +141,24 @@ export default function SubmitIdea() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleChange("description", e.target.value)}
-                  placeholder="Describe your idea in detail. What problem does it solve? How does it work?"
-                  rows={6}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="targetAudience">Target Audience</Label>
-                <Input
-                  id="targetAudience"
-                  value={formData.targetAudience}
-                  onChange={(e) => handleChange("targetAudience", e.target.value)}
-                  placeholder="Who would benefit from this idea?"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="timeline">Implementation Timeline</Label>
-                <Select value={formData.timeline} onValueChange={(value) => handleChange("timeline", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select timeline" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="immediate">Immediate (0-3 months)</SelectItem>
-                    <SelectItem value="short">Short-term (3-6 months)</SelectItem>
-                    <SelectItem value="medium">Medium-term (6-12 months)</SelectItem>
-                    <SelectItem value="long">Long-term (1+ years)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="additionalResources">Additional Resources</Label>
-                <Textarea
-                  id="additionalResources"
-                  value={formData.additionalResources}
-                  onChange={(e) => handleChange("additionalResources", e.target.value)}
-                  placeholder="Any additional resources, links, or references to support your idea"
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="ai-evaluate"
-                    checked={formData.requestAiEvaluation}
-                    onCheckedChange={(checked) => handleChange("requestAiEvaluation", checked)}
+              {questions.map((q, index) => (
+                <div key={q.id} className="space-y-2">
+                  <Label htmlFor={q.id}>{q.label}</Label>
+                  <Textarea
+                    id={q.id}
+                    value={answers[index]}
+                    onChange={(e) => handleAnswerChange(index, e.target.value)}
+                    placeholder={q.placeholder}
+                    rows={4}
+                    required
                   />
-                  <Label htmlFor="ai-evaluate">Request AI evaluation</Label>
                 </div>
+              ))}
+
+              <div className="flex justify-end items-center">
                 <Button type="submit" disabled={submitMutation.isPending}>
                   <Send className="w-4 h-4 mr-2" />
-                  {submitMutation.isPending ? "Submitting..." : "Submit Idea"}
+                  {submitMutation.isPending ? "Submitting..." : "Submit for Approval"}
                 </Button>
               </div>
             </form>
